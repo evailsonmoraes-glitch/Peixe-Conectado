@@ -1,0 +1,11 @@
+{
+  "name": "Peixe Conectado",
+  "description": "App de monitoramento para comunidades pesqueiras (Internet, Histórias Orais e Mapeamento)",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
