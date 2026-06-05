@@ -5,12 +5,15 @@ import { Cloud, Droplets, Wind, Moon, Thermometer, Waves, CloudSun } from 'lucid
 export default function ClimaTab() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/clima')
-      .then(res => {
-         if (!res.ok) throw new Error("Network error");
+      .then(async res => {
+         if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            throw new Error(body.details || "Erro de servidor");
+         }
          return res.json();
       })
       .then(json => {
@@ -18,8 +21,8 @@ export default function ClimaTab() {
          setLoading(false);
       })
       .catch((err) => {
-         console.error(err);
-         setError(true);
+         console.error("Erro na API de Clima:", err.message);
+         setError(err.message);
          setLoading(false);
       });
   }, []);
@@ -37,6 +40,7 @@ export default function ClimaTab() {
     return (
        <div className="p-6 text-center text-red-600 bg-red-50 rounded-2xl">
          <p>Não foi possível carregar as informações do clima no momento. Tente novamente mais tarde.</p>
+         <p className="text-xs mt-2 opacity-70">Detalhes: {error}</p>
        </div>
     );
   }

@@ -5,12 +5,15 @@ import { Newspaper, ExternalLink } from 'lucide-react';
 export default function NoticiasTab() {
   const [news, setNews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/noticias')
-      .then(res => {
-         if (!res.ok) throw new Error("Network error");
+      .then(async res => {
+         if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            throw new Error(body.details || "Erro de servidor");
+         }
          return res.json();
       })
       .then(json => {
@@ -19,8 +22,8 @@ export default function NoticiasTab() {
          setLoading(false);
       })
       .catch((err) => {
-         console.error(err);
-         setError(true);
+         console.error("Erro na API de Notícias:", err.message);
+         setError(err.message);
          setLoading(false);
       });
   }, []);
@@ -38,6 +41,7 @@ export default function NoticiasTab() {
     return (
        <div className="p-6 text-center text-red-600 bg-red-50 rounded-2xl">
          <p>Não foi possível carregar as notícias no momento. Tente novamente mais tarde.</p>
+         <p className="text-xs mt-2 opacity-70">Detalhes: {error}</p>
        </div>
     );
   }
