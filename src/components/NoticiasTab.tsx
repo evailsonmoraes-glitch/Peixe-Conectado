@@ -1,41 +1,56 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Newspaper, ExternalLink } from 'lucide-react';
 
 export default function NoticiasTab() {
-  const news = [
-    {
-       id: 1,
-       title: "MAPA lança novo edital de fomento à aquicultura familiar",
-       date: "Hoje",
-       source: "Ministério da Agricultura",
-       summary: "Novas linhas de crédito para pequenos produtores de pescado em nossa região. Inscrições abertas até o final do mês."
-    },
-    {
-       id: 2,
-       title: "Período de defeso do Tambaqui: regras e fiscalização",
-       date: "Ontem",
-       source: "IBAMA / MPA",
-       summary: "Saiba quais são as restrições e como garantir o registro de pescador para o seguro defeso durante a piracema."
-    },
-    {
-       id: 3,
-       title: "Boas práticas de manejo sanitário na aquicultura",
-       date: "20 Mai 2026",
-       source: "Embrapa",
-       summary: "Técnicos recomendam cuidados com a temperatura e qualidade da água nos viveiros escavados."
-    }
-  ];
+  const [news, setNews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/noticias')
+      .then(res => {
+         if (!res.ok) throw new Error("Network error");
+         return res.json();
+      })
+      .then(json => {
+         // API might return data directly or wrapped in an array depending on AI output, assuming array of objects
+         setNews(Array.isArray(json) ? json : []);
+         setLoading(false);
+      })
+      .catch((err) => {
+         console.error(err);
+         setError(true);
+         setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+       <div className="flex flex-col items-center justify-center p-12 text-slate-500 gap-4">
+         <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+         <p>Buscando últimas notícias...</p>
+       </div>
+    );
+  }
+
+  if (error || news.length === 0) {
+    return (
+       <div className="p-6 text-center text-red-600 bg-red-50 rounded-2xl">
+         <p>Não foi possível carregar as notícias no momento. Tente novamente mais tarde.</p>
+       </div>
+    );
+  }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <h2 className="text-xl font-bold flex items-center gap-2 text-indigo-700">
-        <Newspaper size={24} /> Notícias de Aquicultura
+        <Newspaper size={24} /> Notícias MAPA/Aquicultura
       </h2>
 
       <div className="space-y-4">
         {news.map(item => (
-            <div key={item.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-indigo-200 transition-colors cursor-pointer group">
+            <a key={item.id} href={item.url || '#'} target="_blank" rel="noreferrer" className="block bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-indigo-200 transition-colors cursor-pointer group">
                 <div className="flex justify-between items-start mb-2">
                     <span className="text-[10px] font-bold tracking-wider uppercase text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">{item.source}</span>
                     <span className="text-xs text-slate-400 font-medium">{item.date}</span>
@@ -47,7 +62,7 @@ export default function NoticiasTab() {
                 <div className="flex justify-end text-indigo-500 text-sm font-medium items-center gap-1 group-hover:text-indigo-600">
                     Ler matéria completa <ExternalLink size={14} />
                 </div>
-            </div>
+            </a>
         ))}
       </div>
     </motion.div>
